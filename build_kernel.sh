@@ -1,15 +1,20 @@
 #!/bin/bash
 
-export CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
 export ARCH=arm64
+export CLANG=$HOME/clang
 mkdir out
 
-BUILD_CROSS_COMPILE=$(pwd)/toolchain/gcc/linux-x86/aarch64/aarch64-linux-android-4.9/bin/aarch64-linux-android-
-KERNEL_LLVM_BIN=$(pwd)/toolchain/llvm-arm-toolchain-ship/10.0/bin/clang
-CLANG_TRIPLE=aarch64-linux-gnu-
-KERNEL_MAKE_ENV=""
 
-make -j64 -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE sm7150_sec_a71_eur_open_defconfig
-make -j64 -C $(pwd) O=$(pwd)/out $KERNEL_MAKE_ENV ARCH=arm64 CROSS_COMPILE=$BUILD_CROSS_COMPILE REAL_CC=$KERNEL_LLVM_BIN CLANG_TRIPLE=$CLANG_TRIPLE
- 
-cp out/arch/arm64/boot/Image $(pwd)/arch/arm64/boot/Image
+make O=out ARCH=arm64 a71_defconfig
+
+make -j8 O=out \
+			ARCH=arm64 SUBARCH=arm64 \
+			DTC_EXT=tools/dtc \
+			CC=${CLANG}/bin/clang \
+			CROSS_COMPILE=${CLANG}/bin/aarch64-linux-gnu- \
+			CROSS_COMPILE_ARM32=${CLANG}/bin/arm-linux-gnueabi- \
+			AR=${CLANG}/bin/llvm-ar  \
+			NM=${CLANG}/bin/llvm-nm \
+			OBJCOPY=${CLANG}/bin/llvm-objcopy \
+			OBJDUMP=${CLANG}/bin/llvm-objdump \
+			STRIP=${CLANG}/bin/llvm-strip
